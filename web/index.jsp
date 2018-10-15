@@ -11,12 +11,14 @@
         <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
         <meta charset="utf-8">
         <link rel="stylesheet" type="text/css" href="css/main.css"/>
-        <!--<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUZb1UX_4HWwmeIwQBLRAdU7we8OyAWZ8"></script>-->
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUZb1UX_4HWwmeIwQBLRAdU7we8OyAWZ8&libraries=places"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
         <script>
             var map;
             var x;
             var y;
+            var geocoder;
+
             function loadmaps() {
                 $.getJSON("https://api.thingspeak.com/channels/601415/fields/1/last.json?api_key=CB71JD6GMF38UCJU", function (result) {
                     var m = result;
@@ -27,12 +29,16 @@
                     y = Number(m.field2);
                 }).done(function () {
                     initialize();
+                    document.getElementById("lat").value = x;
+                    document.getElementById("lng").value = y;
+                    geocoder = new google.maps.Geocoder;
+                    geocodeLatLng(geocoder, x, y);
                 });
-
+                
             }
             
-             var marker2;
-               var placeSearch, autocomplete;
+            var marker2;
+            var placeSearch, autocomplete;
             function initialize() {
                 var mapOptions = {
                     zoom: 18,
@@ -71,8 +77,6 @@
                 });
             }
 
-            google.maps.event.addDomListener(window, 'load', initialize);
-            
     
             function initAutocomplete() {
                 autocomplete = new google.maps.places.Autocomplete(
@@ -89,6 +93,26 @@
                     marker2.setPosition(place.geometry.location);
                 }
             }
+            
+            function geocodeLatLng(geocoder, x, y) {
+                while(x===null);
+//                alert(x);alert(y);
+                var latlng = {lat: Number(x), lng: Number(y)};
+                geocoder.geocode({'location': latlng}, function(results, status) {
+                  if (status === 'OK') {
+                    if (results[0]) {
+                      
+                      document.getElementById("src").value = results[0].formatted_address;
+//                      infowindow.open(map, marker);
+                    } else {
+                      window.alert('No results found');
+                    }
+                  } else {
+                    window.alert('Geocoder failed due to: ' + status);
+                  }
+                });
+              }
+
             
             function geolocate() {
                 if (navigator.geolocation) {
@@ -110,11 +134,14 @@
 
 
     <body>
-        <script>
+         <%
+            if (request.getParameter("msg") != null) {
+                out.print("<script type=\"text/javascript\">alert(\"" + request.getParameter("msg") + "\");</script>");
+            }
             
-        </script>
+        %>
         <h1>Package Transit System</h1>
-        <form id = "pickupForm" method="POST" action="newPickup">
+        <form id = "pickupForm" method="POST" action="newTransit">
             <h2>Schedule a new pickup</h2>
             <div>
                 <label for="device1">Device</label>
@@ -124,24 +151,30 @@
                 </select>
             </div>
             <br>
-            <h3>Current Location</h3>
-            <div class="small-group">
-                <input id="lat" type ="text" name="srcLat" hidden="true"/>
-                <input id ="lng" type ="text" name ="srcLng" hidden="true"/>
+            <div>
+                <label for="src">Current Location</label>
+
+                <input id="src" type ="text" name="src" />
+                <div class="small-group">
+                    <input id="lat" type ="text" name="srcLat" hidden="true"/>
+                    <input id ="lng" type ="text" name ="srcLng" hidden="true"/>
+                </div>
+                <div id="map"></div>
             </div>
-            <div id="map"></div>
             <br>
             <div>
                 <label for="dest">Destination</label>
                 <input id = "dest" onFocus="geolocate()" type="text" name="dest"/>
                 <div class="small-group">
-                    <input id="latInput" type ="text" name="destLat" hidden="true"/>
-                    <input id ="lngInput" type ="text" name ="destLng" hidden="true"/>
+<!--                    <input id = "latInput" type ="text" name ="destLat" hidden="true"/>
+                    <input id = "lngInput" type ="text" name ="destLng" hidden="true"/>-->
+                    <input id = "latInput" type ="text" name ="destLat" />
+                    <input id = "lngInput" type ="text" name ="destLng" />
                 </div>
             </div>
             <br>
             <div>
-                <input type="button" class="btn" name="pickup" value="Pickup"/>
+                <input type="submit" class="btn" name="pickup" value="Pickup"/>
                 <br>
             </div>
         </form>
@@ -159,13 +192,17 @@
                 <input type="password" name="secret" id ="secret"/>
             </div>
                 <div>
-                    <input type="button" class="btn" name="pickup" value="Track"/>
+                    <input type="submit" class="btn" name="pickup" value="Track"/>
                     <br>
                 </div>
             </div>
         </form>
-        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUZb1UX_4HWwmeIwQBLRAdU7we8OyAWZ8&libraries=places&callback=initAutocomplete"
-        async defer></script>
-        <script type="text/javascript">loadmaps();</script>
+<!--         <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUZb1UX_4HWwmeIwQBLRAdU7we8OyAWZ8&callback=initMap">
+        </script>-->
+
+<!--        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUZb1UX_4HWwmeIwQBLRAdU7we8OyAWZ8&libraries=places&callback=initAutocomplete"
+        async defer></script>-->
+        <script type="text/javascript">loadmaps();initAutocomplete();</script>
     </body>
 </html>

@@ -4,9 +4,17 @@
         <servlet-name>newTransit</servlet-name>
         <servlet-class>mainpackages.newTransit</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>validate</servlet-name>
+        <servlet-class>mainpackages.validate</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>newTransit</servlet-name>
         <url-pattern>/newTransit</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>validate</servlet-name>
+        <url-pattern>/validate</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
